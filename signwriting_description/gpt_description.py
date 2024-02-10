@@ -112,6 +112,14 @@ if __name__ == '__main__':
         print("Usage: python gpt_description.py fsw_value")
         sys.exit(1)
     fsw_value = sys.argv[1]
-    print(describe_sign(fsw_value))
+    stdout_backup = sys.stdout
+    sys.stdout = open(os.devnull, 'w')
+    description = None
+    try:
+        description = describe_sign(fsw_value)
+    finally:
+        sys.stdout.close()
+        sys.stdout = stdout_backup
+        print(description)
     #for shot in few_shots():
     #    print(f"| ![FSW: {shot['fsw']}]({shot['image']}) | {shot['translation']} | {describe_sign(shot['fsw'])} |")

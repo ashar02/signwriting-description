@@ -1,3 +1,4 @@
+import os
 import json
 import sys
 from functools import lru_cache
@@ -108,5 +109,13 @@ if __name__ == '__main__':
         print("Usage: python naive_description.py fsw_value")
         sys.exit(1)
     fsw_value = sys.argv[1]
-    print(describe_sign_symbols(fsw_value))
+    stdout_backup = sys.stdout
+    sys.stdout = open(os.devnull, 'w')
+    description = None
+    try:
+        description = describe_sign_symbols(fsw_value)
+    finally:
+        sys.stdout.close()
+        sys.stdout = stdout_backup
+        print(description)
     #print(describe_sign_symbols("M546x518S30007482x483S22f07525x467S15a2f516x482"))
