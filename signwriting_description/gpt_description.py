@@ -1,4 +1,6 @@
 import os
+import sys
+from dotenv import load_dotenv
 from functools import lru_cache
 from io import BytesIO
 import json
@@ -11,6 +13,8 @@ from PIL import Image
 from signwriting.visualizer.visualize import signwriting_to_image
 
 from signwriting_description.naive_description import describe_sign_symbols
+
+load_dotenv()
 
 SYSTEM_PROMPT = """
 This tool automatically describes SignWriting images in spoken languages.
@@ -79,28 +83,35 @@ def few_shot_messages(exclude=None):
 
 @lru_cache(maxsize=1)
 def get_openai_client():
-    api_key = os.environ.get("OPENAI_API_KEY", None)
+    api_key = os.getenv("OPENAI_API_KEY")
     return OpenAI(api_key=api_key)
 
 
 def describe_sign(fsw: str):
-    messages = [{"role": "system", "content": SYSTEM_PROMPT}] + few_shot_messages(exclude=fsw)
+    try:
+        messages = [{"role": "system", "content": SYSTEM_PROMPT}] + few_shot_messages(exclude=fsw)
 
-    # Add the specific sign
-    messages.append(create_user_message(fsw))
+        # Add the specific sign
+        messages.append(create_user_message(fsw))
 
-    # Call OpenAI GPT-4 for image caption
-    response = get_openai_client().chat.completions.create(
-        model="gpt-4-vision-preview",
-        temperature=0,
-        seed=42,
-        messages=messages,
-        max_tokens=500
-    )
+        # Call OpenAI GPT-4 for image caption
+        response = get_openai_client().chat.completions.create(
+            model="gpt-4-vision-preview",
+            temperature=0,
+            seed=42,
+            messages=messages,
+            max_tokens=500
+        )
 
-    return response.choices[0].message.content
-
+        return response.choices[0].message.content
+    except Exception as e:
+        return None
 
 if __name__ == '__main__':
-    for shot in few_shots():
-        print(f"| ![FSW: {shot['fsw']}]({shot['image']}) | {shot['translation']} | {describe_sign(shot['fsw'])} |")
+    if len(sys.argv) != 2:
+        print("Usage: python gpt_description.py fsw_value")
+        sys.exit(1)
+    fsw_value = sys.argv[1]
+    print(describe_sign(fsw_value))
+    #for shot in few_shots():
+    #    print(f"| ![FSW: {shot['fsw']}]({shot['image']}) | {shot['translation']} | {describe_sign(shot['fsw'])} |")

@@ -1,4 +1,5 @@
 import json
+import sys
 from functools import lru_cache
 
 from pathlib import Path
@@ -103,4 +104,9 @@ def describe_sign_symbols(fsw: str):
 
 
 if __name__ == '__main__':
-    print(describe_sign_symbols("M546x518S30007482x483S22f07525x467S15a2f516x482"))
+    if len(sys.argv) != 2:
+        print("Usage: python naive_description.py fsw_value")
+        sys.exit(1)
+    fsw_value = sys.argv[1]
+    print(describe_sign_symbols(fsw_value))
+    #print(describe_sign_symbols("M546x518S30007482x483S22f07525x467S15a2f516x482"))
